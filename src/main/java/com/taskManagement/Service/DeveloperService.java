@@ -20,4 +20,6 @@ public interface DeveloperService {
 
 	List<DeveloperDto> getAllEmployee(String role, String userCode);
 
+	Long getDeveloperByUserCode(String userCode);
+
 }

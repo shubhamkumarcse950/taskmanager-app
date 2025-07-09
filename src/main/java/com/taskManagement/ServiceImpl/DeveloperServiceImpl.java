@@ -201,4 +201,18 @@ public class DeveloperServiceImpl implements DeveloperService {
 		return developers.stream().map(mapper::toDeveloperDto).collect(Collectors.toList());
 	}
 
+	@Override
+	public Long getDeveloperByUserCode(String userCode) {
+
+		try {
+			Developer developer = this.developerRepository.findByUserCode(userCode)
+					.orElseThrow(() -> new InvalidInputException("Invalid user Code"));
+			return developer.getDeveloperId();
+
+		} catch (Exception e) {
+			log.error("Error|Ouccred in getting user Code {}", e.getMessage());
+			return (long) 0;
+		}
+	}
+
 }

@@ -107,4 +107,9 @@ public class DeveloperController {
 		List<Developer> developers = developerRepository.findByRoleIn(roles);
 		return ResponseEntity.ok(developers);
 	}
+
+	@GetMapping("/getDeveloperIdByUserCode")
+	public Long getDeveloperIdByUserCode(@RequestParam String userCode) {
+		return service.getDeveloperByUserCode(userCode);
+	}
 }
