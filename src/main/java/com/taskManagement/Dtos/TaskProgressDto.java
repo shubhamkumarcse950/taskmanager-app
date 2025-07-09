@@ -19,4 +19,5 @@ public class TaskProgressDto {
 	@Column(length = 1000)
 	private String todayTaskProgres;
 	private LocalDate todayDate;
+	private TaskDto taskDto;
 }

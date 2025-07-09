@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.hibernate.HibernateException;
 import org.springframework.stereotype.Service;
 
 import com.taskManagement.Dtos.TaskDto;
@@ -148,18 +147,11 @@ public class TaskServiceImpl implements TaskService {
 	}
 
 	@Override
-	public List<Task> getTaskOfDevelopers(String userCode) {
+	public List<TaskDto> getTaskOfDevelopers(String userCode) {
 		try {
-			Optional<Developer> optional = this.developerRepository.findByUserCode(userCode);
-			if (optional.isEmpty()) {
-				throw new DataNotFoundException("Data not found with this user Code!");
-			}
-			List<Task> getList = this.taskRepository.findByDeveloperId(optional.get().getDeveloperId());
-			if (getList.isEmpty()) {
-				throw new DataNotFoundException("Task not found with this user Code");
-			}
-			return getList;
-		} catch (DataNotFoundException | HibernateException e) {
+			List<Task> list = taskRepository.findByUserCode(userCode);
+			return mapper.toTaskListDto(list);
+		} catch (Exception e) {
 			log.error("Error| Ouccred in fetching data from dataBase!{}", e.getMessage());
 			return java.util.Collections.emptyList();
 		}

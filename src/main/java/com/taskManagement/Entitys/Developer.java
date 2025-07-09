@@ -28,5 +28,5 @@ public class Developer {
 	private String address;
 	private String userCode;
 	private String techStack;
-
+	private String role;
 }

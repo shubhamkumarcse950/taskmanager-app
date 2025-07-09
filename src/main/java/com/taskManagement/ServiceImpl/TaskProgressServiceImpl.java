@@ -12,8 +12,10 @@ import com.taskManagement.Repository.TaskProgressRepo;
 import com.taskManagement.Repository.TaskRepository;
 import com.taskManagement.Service.TaskProgressService;
 import com.taskManagement.exceptions.DataNotFoundException;
+import com.taskManagement.exceptions.InvalidInputException;
 import com.taskManagement.outputdto.OutputTask;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -36,10 +38,15 @@ public class TaskProgressServiceImpl implements TaskProgressService {
 	public TaskProgressDto saveTaskProgress(TaskProgressDto dto) {
 		TaskProgressDto response = null;
 		try {
+			log.info("data", dto.toString());
 			TaskProgress taskProgress = this.mapper.toTaskProgress(dto);
+			Task task = taskRepository.findById(dto.getTaskId())
+					.orElseThrow(() -> new InvalidInputException("you provide invalid task Id whic is not present"));
+			taskProgress.setTask(task);
 			taskProgress.setTodayDate(LocalDate.now());
 			taskProgress = this.progressRepo.saveAndFlush(taskProgress);
 			response = this.mapper.toTaskProgressDto(taskProgress);
+			response.setTaskId(taskProgress.getTask().getTaskId());
 		} catch (Exception e) {
 			log.error("Error|Ouccreed in saving the task progress data,{}", e.getMessage());
 		}
@@ -56,8 +63,47 @@ public class TaskProgressServiceImpl implements TaskProgressService {
 
 		} catch (Exception e) {
 			log.error("Error|Ouccreed in getting the data ,{}", e.getMessage());
-
 		}
 		return outputTask;
+	}
+
+	@Override
+	public TaskProgressDto updateTaskProgess(TaskProgressDto taskProgressDto) {
+		TaskProgressDto dto = null;
+		try {
+			TaskProgress existing = this.progressRepo.findById(taskProgressDto.getTaskProgressId())
+					.orElseThrow(() -> new InvalidInputException("Invalid task progress id"));
+
+			Task task = this.taskRepository.findById(taskProgressDto.getTaskId())
+					.orElseThrow(() -> new InvalidInputException("Invalid task id"));
+
+			existing.setTodayTaskProgres(taskProgressDto.getTodayTaskProgres());
+			existing.setTodayDate(taskProgressDto.getTodayDate());
+			existing.setTask(task);
+
+			progressRepo.saveAndFlush(existing);
+
+			dto = mapper.toTaskProgressDto(existing);
+			dto.setTaskId(task.getTaskId());
+
+		} catch (Exception e) {
+			log.error("Error occurred while updating the task progress data: {}", e.getMessage());
+		}
+		return dto;
+	}
+
+	@Override
+	@Transactional
+	public boolean deleteTaskProgres(Long taskProgresId) {
+		try {
+			TaskProgress taskProgress = this.progressRepo.findById(taskProgresId)
+					.orElseThrow(() -> new InvalidInputException("Invalid input Id"));
+
+			progressRepo.delete(taskProgress);
+			return true;
+		} catch (Exception e) {
+			log.error("Error|Ouccreed in deleting task progress,{}", e.getMessage());
+			return false;
+		}
 	}
 }

@@ -3,14 +3,17 @@ package com.taskManagement.Mappers;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
 import com.taskManagement.Dtos.DeveloperDto;
+import com.taskManagement.Dtos.ProfileDto;
 import com.taskManagement.Dtos.ProjectDto;
 import com.taskManagement.Dtos.TaskDto;
 import com.taskManagement.Dtos.TaskProgressDto;
 import com.taskManagement.Dtos.UserDto;
 import com.taskManagement.Entitys.Developer;
+import com.taskManagement.Entitys.Profile;
 import com.taskManagement.Entitys.Project;
 import com.taskManagement.Entitys.Task;
 import com.taskManagement.Entitys.TaskProgress;
@@ -44,5 +47,13 @@ public interface LeadManagmentMapper {
 	TaskProgressDto toTaskProgressDto(TaskProgress taskProgress);
 
 	OutputTask toOutputTask(Task tasks);
+
+	@Mapping(target = "logo", ignore = true)
+	Profile toProfile(ProfileDto profileDto);
+
+	@Mapping(target = "logo", ignore = true)
+	ProfileDto toProfileDto(Profile p);
+
+	List<TaskDto> toTaskListDto(List<Task> list);
 
 }

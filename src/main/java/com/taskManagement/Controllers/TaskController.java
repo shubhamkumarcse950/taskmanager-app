@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taskManagement.Dtos.TaskDto;
-import com.taskManagement.Entitys.Task;
 import com.taskManagement.Service.TaskService;
 import com.taskManagement.responsemodel.AppConstants;
 import com.taskManagement.responsemodel.ResponseWithObject;
@@ -81,9 +80,9 @@ public class TaskController {
 		return responseWithObject.generateResponse(AppConstants.ACCEPT, HttpStatus.OK, service.deletById(taskId));
 	}
 
-	@GetMapping("/getAllTaskOfDeveloper")
+	@GetMapping("/getAllGivenTaskByUserCode")
 	public ResponseEntity<Object> getAllTaskOfDeveloper(@RequestParam String userCode) {
-		List<Task> list = this.service.getTaskOfDevelopers(userCode);
+		List<TaskDto> list = this.service.getTaskOfDevelopers(userCode);
 		if (list.isEmpty()) {
 			return responseWithObject.generateResponse(AppConstants.NO_DATA_FOUND, HttpStatus.NOT_FOUND, list);
 		}

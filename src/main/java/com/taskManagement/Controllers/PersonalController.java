@@ -33,7 +33,7 @@ public class PersonalController {
 		if (response.equals(AppConstants.USER_ACCOUNT_DEACTIVE)) {
 			return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, response);
 		}
-		return responseWithObject.generateResponse(AppConstants.ERROR, HttpStatus.BAD_REQUEST, response);
+		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, response);
 	}
 
 }

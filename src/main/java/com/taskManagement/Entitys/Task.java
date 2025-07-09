@@ -3,6 +3,8 @@ package com.taskManagement.Entitys;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -34,7 +36,8 @@ public class Task {
 	private LocalDate dueDate;
 	private Long developerId;
 	private Long projectId;
+	@JsonManagedReference
 	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<TaskProgress> taskProgresses;
-
+	private String userCode;
 }

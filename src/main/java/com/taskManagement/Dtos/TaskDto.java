@@ -29,4 +29,6 @@ public class TaskDto {
 	private Long projectId;
 	private String developerName;
 	private String projectName;
+	private String userCode;
+
 }

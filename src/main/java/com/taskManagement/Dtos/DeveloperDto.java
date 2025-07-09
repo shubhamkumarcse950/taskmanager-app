@@ -26,5 +26,5 @@ public class DeveloperDto {
 	private String company;
 	private String address;
 	private String techStack;
-
+	private String role;
 }

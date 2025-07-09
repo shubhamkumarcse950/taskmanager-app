@@ -12,4 +12,8 @@ public interface TaskProgressService {
 
 	OutputTask getAllProgressTaskWithTask(Long taskId);
 
+	TaskProgressDto updateTaskProgess(TaskProgressDto taskProgressDto);
+
+	boolean deleteTaskProgres(Long taskProgresId);
+
 }

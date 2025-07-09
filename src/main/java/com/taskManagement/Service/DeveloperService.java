@@ -18,4 +18,6 @@ public interface DeveloperService {
 
 	List<DeveloperDto> getDeveloperByIds(List<Long> developerId);
 
+	List<DeveloperDto> getAllEmployee(String role, String userCode);
+
 }

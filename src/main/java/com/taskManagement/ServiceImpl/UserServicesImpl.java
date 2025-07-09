@@ -1,6 +1,8 @@
 package com.taskManagement.ServiceImpl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.taskManagement.RoleEnum;
 import com.taskManagement.Dtos.UserDto;
 import com.taskManagement.Entitys.User;
 import com.taskManagement.Mappers.LeadManagmentMapper;
@@ -40,19 +43,36 @@ public class UserServicesImpl implements UserServices {
 	@Override
 	public UserDto saveUserDetails(UserDto dto) {
 		if (repo.findByEmail(dto.getEmail()) != null) {
-			throw new InvalidInputException("This email is already exist,please choose a deffrent email!");
+			throw new InvalidInputException("This email is already exist, please choose a different email!");
 		}
+
 		try {
 			User user = this.mapper.toUser(dto);
 			user.setPassword(encoder.encode(dto.getPassword()));
 			user.setUserCode(UUID.randomUUID().toString());
+
+			List<String> inputRoles = dto.getRoles();
+			List<RoleEnum> validRoles = new ArrayList<>();
+
+			for (String roleStr : inputRoles) {
+				try {
+					RoleEnum role = RoleEnum.valueOf(roleStr.toUpperCase());
+					validRoles.add(role);
+				} catch (IllegalArgumentException e) {
+					throw new InvalidInputException("Invalid role: " + roleStr);
+				}
+			}
+			user.setRoles(validRoles.stream().map(Enum::name).toList());
+			user.setActive(true);
 			user = repo.save(user);
 			return mapper.toUserDto(user);
+
+		} catch (InvalidInputException e) {
+			throw e;
 		} catch (Exception e) {
-			log.error("Internal service error{}", e.getMessage());
+			log.error("Internal service error: {}", e.getMessage());
 			return new UserDto();
 		}
-
 	}
 
 	@Override

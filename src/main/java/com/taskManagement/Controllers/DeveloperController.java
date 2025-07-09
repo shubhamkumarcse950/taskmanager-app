@@ -15,28 +15,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taskManagement.Dtos.DeveloperDto;
+import com.taskManagement.Entitys.Developer;
+import com.taskManagement.Repository.DeveloperRepository;
 import com.taskManagement.Service.DeveloperService;
 import com.taskManagement.responsemodel.AppConstants;
 import com.taskManagement.responsemodel.ResponseWithObject;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/deveoperInfo")
 @Tag(name = "Developer-API")
 @CrossOrigin(origins = "*")
-@Slf4j
 public class DeveloperController {
 
 	private final DeveloperService service;
 	private final ResponseWithObject responseWithObject;
+	private final DeveloperRepository developerRepository;
 
-	public DeveloperController(DeveloperService service, ResponseWithObject responseWithObject) {
+	public DeveloperController(DeveloperService service, ResponseWithObject responseWithObject,
+			DeveloperRepository developerRepository) {
 		super();
 		this.service = service;
 		this.responseWithObject = responseWithObject;
+		this.developerRepository = developerRepository;
 	}
 
 	@PostMapping("/addDeveloperInfo")
@@ -52,13 +55,10 @@ public class DeveloperController {
 
 	@GetMapping("/getAllDevelopers")
 	public ResponseEntity<Object> getAllDevelopers() {
-
 		List<DeveloperDto> list = service.getAllDeveloper();
 		if (list.isEmpty()) {
-			return responseWithObject.generateResponse(AppConstants.NA, HttpStatus.NO_CONTENT,
-					AppConstants.NO_DATA_FOUND);
+			return responseWithObject.generateResponse(AppConstants.NO_DATA_FOUND, HttpStatus.OK, list);
 		}
-		log.warn("Product Fetched succesfull on the controller Level !");
 		return responseWithObject.generateResponse(AppConstants.ACCEPT, HttpStatus.OK, list);
 	}
 
@@ -92,4 +92,19 @@ public class DeveloperController {
 
 	}
 
+	@GetMapping("/getAllEmployeAccordingtoRole")
+	public ResponseEntity<Object> getAllEmployeAccordingtoRole(@RequestParam String role,
+			@RequestParam String userCode) {
+		List<DeveloperDto> list = this.service.getAllEmployee(role, userCode);
+		if (list.isEmpty()) {
+			return responseWithObject.generateResponse(AppConstants.NO_DATA_FOUND, HttpStatus.NO_CONTENT, list);
+		}
+		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, list);
+	}
+
+	@GetMapping("/testRoles")
+	public ResponseEntity<List<Developer>> testFetchDevelopersByRoles(@RequestParam List<String> roles) {
+		List<Developer> developers = developerRepository.findByRoleIn(roles);
+		return ResponseEntity.ok(developers);
+	}
 }

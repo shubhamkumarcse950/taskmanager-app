@@ -1,15 +1,16 @@
 package com.taskManagement.ServiceImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-import org.hibernate.HibernateException;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.taskManagement.RoleEnum;
 import com.taskManagement.Dtos.DeveloperDto;
 import com.taskManagement.Entitys.Developer;
 import com.taskManagement.Entitys.User;
@@ -44,45 +45,50 @@ public class DeveloperServiceImpl implements DeveloperService {
 	@Override
 	@Transactional
 	public DeveloperDto saveDeveloperInfo(DeveloperDto dto) {
-		try {
-			if (userRepo.findByEmail(dto.getEmail()) != null) {
-				throw new InvalidInputException("This email is already exist,please choose a deffrent email!");
-			}
-			Developer developer = this.mapper.toDeveloper(dto);
-			developer.setUserCode(UUID.randomUUID().toString());
-			developer = this.developerRepository.save(developer);
-
-			User user = new User();
-			user.setContact(dto.getMobileNumber());
-			user.setEmail(dto.getEmail());
-			user.setName(dto.getFullName());
-			user.setPassword(encoder.encode("123456"));
-			user.setUserCode(developer.getUserCode());
-			List<String> role = new ArrayList<>();
-			role.add("Employee");
-			user.setRoles(role);
-			this.userRepo.save(user);
-			return this.mapper.toDeveloperDto(developer);
-		} catch (InvalidInputException | HibernateException e) {
-			log.error("Internal service error!!", e.getMessage());
-			return new DeveloperDto();
+		if (userRepo.findByEmail(dto.getEmail()) != null) {
+			throw new InvalidInputException("This email is already exist, please choose a different email!");
 		}
 
+		try {
+			Developer developer = mapper.toDeveloper(dto);
+			developer.setUserCode(UUID.randomUUID().toString());
+			developer = developerRepository.save(developer);
+			List<String> role = new ArrayList<>();
+			role.add(dto.getRole().toUpperCase());
+			User user = new User();
+			user.setName(dto.getFullName());
+			user.setEmail(dto.getEmail());
+			user.setContact(dto.getMobileNumber());
+			user.setActive(true);
+			user.setPassword(encoder.encode("123456"));
+			user.setUserCode(developer.getUserCode());
+			user.setRoles(role);
+
+			userRepo.save(user);
+
+			return mapper.toDeveloperDto(developer);
+
+		} catch (InvalidInputException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Internal service error!!", e);
+			throw new RuntimeException("Something went wrong while saving developer info");
+		}
 	}
 
 	@Override
-	@Cacheable(value = "Developer")
 	public List<DeveloperDto> getAllDeveloper() {
-		List<DeveloperDto> list = new ArrayList<>();
+
 		try {
-			log.warn("Product found succesfully!");
+
 			List<Developer> developers = this.developerRepository.findAll();
-			list = mapper.toListDeveloperDto(developers);
+			return mapper.toListDeveloperDto(developers);
+
 		} catch (DataNotFoundException e) {
 			log.warn("Developer data not found in data base!!", e.getMessage());
-
+			return Collections.emptyList();
 		}
-		return list;
+
 	}
 
 	@Override
@@ -107,10 +113,13 @@ public class DeveloperServiceImpl implements DeveloperService {
 			if (user.isEmpty()) {
 				throw new InvalidInputException("User code is invalid,not updating!");
 			}
+			List<String> role = new ArrayList<>();
+			role.add(dto.getRole().toUpperCase());
 			User user2 = user.get();
 			user2.setEmail(developer.getEmail());
 			user2.setContact(developer.getMobileNumber());
 			user2.setName(developer.getFullName());
+			user2.setRoles(role);
 			this.userRepo.save(user2);
 			developer = this.developerRepository.save(developer);
 
@@ -155,6 +164,41 @@ public class DeveloperServiceImpl implements DeveloperService {
 			throw e;
 		}
 		return list;
+	}
+
+	@Override
+	public List<DeveloperDto> getAllEmployee(String role, String userCode) {
+		RoleEnum roleEnum;
+		try {
+			Optional<User> user = userRepo.findByUserCode(userCode);
+			if (user.isEmpty()) {
+				throw new InvalidInputException("User not found with this user code");
+			}
+			roleEnum = RoleEnum.valueOf(role.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			throw new InvalidInputException("Invalid role: " + role);
+		}
+
+		List<String> rolesToFetch;
+		switch (roleEnum) {
+		case ADMIN:
+			rolesToFetch = List.of("HR", "MANAGER", "TL", "EMPLOYEE");
+			break;
+		case HR:
+			rolesToFetch = List.of("MANAGER", "TL", "EMPLOYEE");
+			break;
+		case MANAGER:
+			rolesToFetch = List.of("TL", "EMPLOYEE");
+			break;
+		case TL:
+			rolesToFetch = List.of("EMPLOYEE");
+			break;
+		default:
+			throw new IllegalArgumentException("Unexpected role: " + roleEnum);
+		}
+
+		List<Developer> developers = developerRepository.findByRoleIn(rolesToFetch);
+		return developers.stream().map(mapper::toDeveloperDto).collect(Collectors.toList());
 	}
 
 }

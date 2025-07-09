@@ -3,7 +3,6 @@ package com.taskManagement.Service;
 import java.util.List;
 
 import com.taskManagement.Dtos.TaskDto;
-import com.taskManagement.Entitys.Task;
 
 public interface TaskService {
 
@@ -17,6 +16,6 @@ public interface TaskService {
 
 	String deletById(Long taskId);
 
-	List<Task> getTaskOfDevelopers(String userCode);
+	List<TaskDto> getTaskOfDevelopers(String userCode);
 
 }
