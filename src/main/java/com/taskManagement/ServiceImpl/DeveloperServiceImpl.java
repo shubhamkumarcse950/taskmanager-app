@@ -113,6 +113,7 @@ public class DeveloperServiceImpl implements DeveloperService {
 			if (user.isEmpty()) {
 				throw new InvalidInputException("User code is invalid,not updating!");
 			}
+
 			List<String> role = new ArrayList<>();
 			role.add(dto.getRole().toUpperCase());
 			User user2 = user.get();

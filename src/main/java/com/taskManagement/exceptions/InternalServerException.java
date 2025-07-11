@@ -1,6 +1,6 @@
 package com.taskManagement.exceptions;
 
-public class InternalServerException extends Exception {
+public class InternalServerException extends RuntimeException {
 
 	private final static long serialVersionUID = 1L;
 	private String message;

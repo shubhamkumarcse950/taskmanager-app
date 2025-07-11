@@ -9,16 +9,21 @@ import org.mapstruct.ReportingPolicy;
 import com.taskManagement.Dtos.DeveloperDto;
 import com.taskManagement.Dtos.ProfileDto;
 import com.taskManagement.Dtos.ProjectDto;
+import com.taskManagement.Dtos.SalesDepartmentEmployeeDto;
+import com.taskManagement.Dtos.SalesEmployeeTaskDto;
 import com.taskManagement.Dtos.TaskDto;
 import com.taskManagement.Dtos.TaskProgressDto;
 import com.taskManagement.Dtos.UserDto;
 import com.taskManagement.Entitys.Developer;
 import com.taskManagement.Entitys.Profile;
 import com.taskManagement.Entitys.Project;
+import com.taskManagement.Entitys.SalesDepartmentEmployee;
+import com.taskManagement.Entitys.SalesEmployeeTask;
 import com.taskManagement.Entitys.Task;
 import com.taskManagement.Entitys.TaskProgress;
 import com.taskManagement.Entitys.User;
 import com.taskManagement.outputdto.OutputTask;
+import com.taskManagement.outputdto.SalesEmployeeTaskOutputDto;
 
 @Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface LeadManagmentMapper {
@@ -55,5 +60,15 @@ public interface LeadManagmentMapper {
 	ProfileDto toProfileDto(Profile p);
 
 	List<TaskDto> toTaskListDto(List<Task> list);
+
+	SalesDepartmentEmployee toSalesDepartmentEmployee(SalesDepartmentEmployeeDto dto);
+
+	SalesDepartmentEmployeeDto toSalesDepartmentEmployeeDto(SalesDepartmentEmployee salesDepartmentEmployee);
+
+	SalesEmployeeTask toSalesEmployeeTask(SalesEmployeeTaskDto dto);
+
+	SalesEmployeeTaskDto toSalesEmployeeTaskDto(SalesEmployeeTask task);
+
+	SalesEmployeeTaskOutputDto toSalesEmployeeTaskDtoOutput(SalesEmployeeTask t);
 
 }
