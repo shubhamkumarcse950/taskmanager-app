@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.taskManagement.Entitys.Department;
 import com.taskManagement.Entitys.Developer;
 
 @Repository
@@ -15,4 +16,5 @@ public interface DeveloperRepository extends JpaRepository<Developer, Long> {
 
 	List<Developer> findByRoleIn(List<String> rolesToFetch);
 
+	List<Developer> findAllByDepartment(Department department);
 }

@@ -23,13 +23,11 @@ import lombok.Setter;
 @Setter
 @Table(name = "user_register")
 public class User {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Long userId;
 	private String userCode;
 	private String name;
-
 	private String email;
 	private String contact;
 	private String password;
@@ -43,4 +41,5 @@ public class User {
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
 	private boolean isActive;
+
 }

@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.hibernate.HibernateException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +19,13 @@ import com.taskManagement.Mappers.LeadManagmentMapper;
 import com.taskManagement.Repository.UserRepo;
 import com.taskManagement.Service.UserServices;
 import com.taskManagement.exceptions.DataNotFoundException;
+import com.taskManagement.exceptions.InternalServerException;
 import com.taskManagement.exceptions.InvalidInputException;
+import com.taskManagement.exceptions.UserNotFoundException;
+import com.taskManagement.jwtHelper.JwtHelper;
 import com.taskManagement.responsemodel.AppConstants;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -32,12 +37,14 @@ public class UserServicesImpl implements UserServices {
 	private final PasswordEncoder encoder;
 	@Value("${admin.secret}")
 	private String adminName;
+	private final JwtHelper jwtHelper;
 
-	public UserServicesImpl(UserRepo repo, LeadManagmentMapper mapper, PasswordEncoder encoder) {
+	public UserServicesImpl(UserRepo repo, LeadManagmentMapper mapper, PasswordEncoder encoder, JwtHelper jwtHelper) {
 		super();
 		this.repo = repo;
 		this.mapper = mapper;
 		this.encoder = encoder;
+		this.jwtHelper = jwtHelper;
 	}
 
 	@Override
@@ -151,4 +158,77 @@ public class UserServicesImpl implements UserServices {
 		}
 	}
 
+	@Override
+	public List<User> getAllUsers(String userName) {
+		if (!adminName.equals(userName)) {
+			throw new InternalServerException("Internal server error...");
+		}
+		return repo.findAll();
+	}
+
+	@Override
+	@Transactional(rollbackOn = Exception.class)
+	public String updateUserDetails(String usercode, String name, String email, String contectNo) {
+		User user = this.repo.findByUserCode(usercode)
+				.orElseThrow(() -> new InvalidInputException("Invalid user code ,user details not found in DB!"));
+		user.setUpdatedAt(LocalDateTime.now());
+		user.setContact(contectNo);
+		if (this.repo.findByEmail(email) != null) {
+			throw new InvalidInputException("Email is already registerd in DB,please put another email!");
+		}
+		user.setEmail(email);
+		user.setName(name);
+		repo.save(user);
+		return AppConstants.SUCCESS;
+
+	}
+
+	@Override
+	public List<User> getAllUsersList() {
+		return repo.findAll();
+	}
+
+	@Override
+	public User getCruentUser(String userCode) throws UserNotFoundException {
+		User user = repo.findByUserCode(userCode)
+				.orElseThrow(() -> new UserNotFoundException("User not found with this userCode" + userCode));
+		return user;
+	}
+
+	@Override
+	public User findUserByProfile(String jwt) throws UserNotFoundException {
+
+		String email = jwtHelper.getEmailFromToken(jwt);
+		System.out.println("user email :: " + email);
+
+		if (email == null) {
+			throw new BadCredentialsException("Invalid token ");
+		}
+		User user = repo.findByEmail(email);
+		if (user == null) {
+			throw new UserNotFoundException("User not found with this email :: " + email);
+		}
+		System.out.println("User :: " + user);
+		return user;
+	}
+
+//	@Override
+//	public List<User> searchUser(String query) {
+//		List<User> searchedUsers = repo.searchUser(query);
+//		return searchedUsers;
+//	}
+
+	@Override
+	public List<User> searchByUserName(String name) {
+		return repo.findByName(name);
+	}
+
+	@Override
+	public void deleteUser(String email) {
+		User user = repo.findByEmail(email);
+		if (user == null) {
+			throw new UserNotFoundException("User not found with this email Id !..");
+		}
+		repo.delete(user);
+	}
 }

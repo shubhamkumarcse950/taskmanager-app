@@ -57,27 +57,24 @@ public class JwtHelper {
 		return expiration.before(new Date());
 	}
 
-	// generate token for user
 	public String generateToken(UserDetails userDetails) {
 		Map<String, Object> claims = new HashMap<>();
+
+		claims.put("username", userDetails.getUsername());
+		claims.put("issuer", "Gourav Pal");
+		claims.put("issuedDate", new Date(System.currentTimeMillis()));
+
 		return doGenerateToken(claims, userDetails.getUsername());
 	}
 
-	// while creating the token -
-	// 1. Define claims of the token, like Issuer, Expiration, Subject, and the ID
-	// 2. Sign the JWT using the HS512 algorithm and secret key.
-	// 3. According to JWS Compact
-	// Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
-	// compaction of the JWT to a URL-safe string
 	@SuppressWarnings("deprecation")
 	private String doGenerateToken(Map<String, Object> claims, String subject) {
-
-		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuer("Gourav Pal")
+				.setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
 				.signWith(SignatureAlgorithm.HS512, secret).compact();
 	}
 
-	// validate token
 	public Boolean validateToken(String token, UserDetails userDetails) {
 		final String username = getUsernameFromToken(token);
 		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
@@ -89,5 +86,25 @@ public class JwtHelper {
 
 	public Authentication validateTokenForRole(final String token) {
 		return (Authentication) Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token);
+	}
+
+	public String extractRoleFromToken(String token) {
+
+		if (token.startsWith("Bearer ")) {
+			token = token.substring(7);
+		}
+
+		Claims claims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token).getBody();
+
+		return claims.get("role", String.class);
+	}
+
+	public String getEmailFromToken(String jwt) {
+
+		jwt = jwt.substring(7);
+		Claims claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(jwt).getBody();
+		String email = String.valueOf(claims.get("username"));
+
+		return email;
 	}
 }

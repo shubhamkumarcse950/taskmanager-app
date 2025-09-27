@@ -6,6 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +29,7 @@ public class Task {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long taskId;
 	private String title;
+	@Column(length = 512)
 	private String description;
 	private String status;
 	private String priority;
@@ -40,4 +42,7 @@ public class Task {
 	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<TaskProgress> taskProgresses;
 	private String userCode;
+	private String taskSubmitType;
+	@Column(nullable = true)
+	private Long submitDay;
 }

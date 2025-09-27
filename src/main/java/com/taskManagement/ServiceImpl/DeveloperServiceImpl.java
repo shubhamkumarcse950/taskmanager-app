@@ -216,4 +216,65 @@ public class DeveloperServiceImpl implements DeveloperService {
 		}
 	}
 
+	@Override
+	@Transactional
+	public void saveDeveloperByEmployeeApi(Developer developer, String password) {
+		try {
+			developer = developerRepository.save(developer);
+
+			List<String> role = new ArrayList<>();
+			role.add(developer.getRole().toUpperCase());
+
+			User user = new User();
+			user.setName(developer.getFullName());
+			user.setEmail(developer.getEmail());
+			user.setContact(developer.getMobileNumber());
+			user.setActive(true);
+			user.setPassword(encoder.encode(password));
+			user.setUserCode(developer.getUserCode());
+			user.setRoles(role);
+
+			userRepo.save(user);
+
+		} catch (InvalidInputException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Internal service error!!", e);
+			throw new RuntimeException("Something went wrong while saving developer info");
+		}
+	}
+
+	@Override
+	@Transactional
+	public void updataDeveloperByEmployeeApi(Developer developer) {
+		try {
+			Optional<Developer> optional = this.developerRepository.findById(developer.getDeveloperId());
+			if (optional.isEmpty()) {
+				throw new InvalidInputException("Data not found with this developer id");
+			}
+
+			developer.setDeveloperId(optional.get().getDeveloperId());
+			developer.setUserCode(optional.get().getUserCode());
+
+			Optional<User> user = this.userRepo.findByUserCode(optional.get().getUserCode());
+			if (user.isEmpty()) {
+				throw new InvalidInputException("User code is invalid, not updating!");
+			}
+
+			List<String> role = new ArrayList<>();
+			role.add(developer.getRole().toUpperCase());
+
+			User user2 = user.get();
+			user2.setEmail(developer.getEmail());
+			user2.setContact(developer.getMobileNumber());
+			user2.setName(developer.getFullName());
+			user2.setRoles(role);
+			this.userRepo.save(user2);
+			this.developerRepository.save(developer);
+		} catch (InvalidInputException e) {
+			log.error(e.getMessage());
+			throw e;
+		}
+	}
+
 }

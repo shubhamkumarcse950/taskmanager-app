@@ -1,5 +1,7 @@
 package com.taskManagement.Controllers;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +33,8 @@ import com.taskManagement.responsemodel.ResponseWithObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -69,6 +74,7 @@ public class UserController {
 
 	@PostMapping("/login")
 	public ResponseEntity<Object> login(@Valid @RequestBody LoginDto entity) {
+
 		Authentication authentication = authentication1
 				.authenticate(new UsernamePasswordAuthenticationToken(entity.getEmail(), entity.getPassword()));
 		if (authentication.isAuthenticated()) {
@@ -122,14 +128,24 @@ public class UserController {
 @RequestMapping("/getuser")
 @RestController
 @Tag(name = "Get-User-API")
+@Slf4j
 class AuthController {
 	private final UserServices services;
 	private final ResponseWithObject responseWithObject;
+	private JwtUserDetails jwtUserDetails;
+	private AuthenticationManager authentication1;
+	private JwtHelper jwtHelper;
+	private final UserRepo userRepo;
 
-	public AuthController(UserServices services, ResponseWithObject responseWithObject) {
+	public AuthController(UserServices services, JwtHelper jwtHelper, JwtUserDetails jwtUserDetails,
+			AuthenticationManager authentication1, ResponseWithObject responseWithObject, UserRepo userRepo) {
 		super();
 		this.services = services;
 		this.responseWithObject = responseWithObject;
+		this.userRepo = userRepo;
+		this.authentication1 = authentication1;
+		this.jwtUserDetails = jwtUserDetails;
+		this.jwtHelper = jwtHelper;
 	}
 
 	@GetMapping("/DetailsByEmail")
@@ -153,4 +169,78 @@ class AuthController {
 
 	}
 
+	@PutMapping("/update-user")
+	public ResponseEntity<Object> updateUser(@RequestParam String userCode, @RequestParam String name,
+			@RequestParam String email, @RequestParam String contectNo) {
+		return responseWithObject.generateResponse(AppConstants.ACCEPT, HttpStatus.OK,
+				services.updateUserDetails(userCode, name, email, contectNo));
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<Object> login(@RequestBody LoginRequestData entity) {
+
+//		Authentication authentication = authentication1
+//				.authenticate(new UsernamePasswordAuthenticationToken(entity.getEmail(), entity.()));
+//		if (authentication.isAuthenticated()) {
+//			log.info("valid");
+//		} else {
+//			log.error("Invalid");
+//		}
+		String token = null;
+		UserDetails userDetails = jwtUserDetails.loadUserByUsername(entity.getEmail());
+		User user = userRepo.findByEmail(userDetails.getUsername());
+
+		if (user == null) {
+			return responseWithObject.generateResponse(AppConstants.INVALID_USERNAME, HttpStatus.UNAUTHORIZED,
+					AppConstants.INVALID_INPUT_DATA);
+
+		}
+
+		if (!user.isActive()) {
+			return responseWithObject.generateResponse(AppConstants.BAN_ACCOUNT, HttpStatus.BAD_REQUEST,
+					"Account is banned or inactive");
+		}
+
+		token = this.jwtHelper.generateToken(userDetails);
+		JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
+		jwtAuthResponse.setAccessToken(token);
+		jwtAuthResponse.setTokenType("Bearer");
+		jwtAuthResponse.setRole(userDetails.getAuthorities().stream().findFirst().get().getAuthority());
+		jwtAuthResponse.setEmail(userDetails.getUsername());
+
+		jwtAuthResponse.setUserCode(user.getUserCode());
+		return responseWithObject.generateResponse(AppConstants.ACCEPT, HttpStatus.OK, jwtAuthResponse);
+	}
+//	private String getPassword(String email) {
+//		User user = userRepo.findByEmail(email);
+//		if (user == null) {
+//		throw new InvalidInputException("invalid email");
+//		}
+//	}
+
+	@Getter
+	@Setter
+	static class LoginRequestData {
+		String email;
+		String userCode;
+	};
+
+	@GetMapping("/getAll-user")
+	public ResponseEntity<Object> getAll() {
+		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, services.getAllUsersList());
+	}
+
+	@GetMapping("/getSingleUser/by-userCode")
+	public ResponseEntity<Object> getSingleUserByItsCode(@RequestParam String userCode) {
+		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK,
+				services.getCruentUser(userCode));
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<HashSet<User>> searchByNameHandler(@RequestParam("name") String name) {
+		List<User> searchUser = services.searchByUserName(name);
+		HashSet<User> setUsr = new HashSet<>(searchUser);
+
+		return new ResponseEntity<HashSet<User>>(setUsr, HttpStatus.OK);
+	}
 }

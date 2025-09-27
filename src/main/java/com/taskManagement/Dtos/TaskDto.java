@@ -30,5 +30,4 @@ public class TaskDto {
 	private String developerName;
 	private String projectName;
 	private String userCode;
-
 }

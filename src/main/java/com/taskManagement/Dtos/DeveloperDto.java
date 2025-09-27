@@ -22,9 +22,9 @@ public class DeveloperDto {
 	@Size(min = 1, message = "Email should not be null!!")
 	@Email(message = "Email should be valid!!")
 	private String email;
+	private String compnyEmail;
 	private String mobileNumber;
 	private String company;
-	private String address;
 	private String techStack;
 	private String role;
 }

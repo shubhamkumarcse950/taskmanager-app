@@ -3,6 +3,7 @@ package com.taskManagement.Service;
 import java.util.List;
 
 import com.taskManagement.Dtos.DeveloperDto;
+import com.taskManagement.Entitys.Developer;
 
 public interface DeveloperService {
 
@@ -21,5 +22,9 @@ public interface DeveloperService {
 	List<DeveloperDto> getAllEmployee(String role, String userCode);
 
 	Long getDeveloperByUserCode(String userCode);
+
+	void updataDeveloperByEmployeeApi(Developer developer);
+
+	void saveDeveloperByEmployeeApi(Developer developer, String password);
 
 }

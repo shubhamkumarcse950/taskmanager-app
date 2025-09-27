@@ -16,6 +16,7 @@ import com.taskManagement.Repository.SalesDepartmentEmployeeRepo;
 import com.taskManagement.Repository.UserRepo;
 import com.taskManagement.Service.SalesDepartmentEmployeeService;
 import com.taskManagement.exceptions.InvalidInputException;
+import com.taskManagement.responsemodel.AppConstants;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +78,7 @@ public class SalesDepartmentEmployeeServiceImpl implements SalesDepartmentEmploy
 	@Transactional(rollbackOn = Exception.class)
 	public boolean deletedSalesEmployee(Long employeeId) {
 		try {
+
 			SalesDepartmentEmployee employee = salesDepartmentEmployeeRepo.findById(employeeId)
 					.orElseThrow(() -> new InvalidInputException("employee not found with this empId"));
 			userRepo.deleteByUserCode(employee.getUserCode());
@@ -147,5 +149,85 @@ public class SalesDepartmentEmployeeServiceImpl implements SalesDepartmentEmploy
 				.orElseThrow(() -> new InvalidInputException("Invalid input user code for getting employee data"));
 		return mapper.toSalesDepartmentEmployeeDto(optional);
 
+	}
+
+	@Override
+	@Transactional(rollbackOn = Exception.class)
+	public void addSalesEmployee(SalesDepartmentEmployee salesDepartmentEmployee, String password) {
+		try {
+			User user = new User();
+			user.setName(salesDepartmentEmployee.getFullName());
+			user.setEmail(salesDepartmentEmployee.getEmail());
+			user.setContact(salesDepartmentEmployee.getMobileNumber());
+			user.setActive(true);
+			user.setPassword(encoder.encode(password));
+			user.setUserCode(salesDepartmentEmployee.getUserCode());
+
+			List<String> roles = new ArrayList<>();
+			roles.add(salesDepartmentEmployee.getRole().toUpperCase());
+			user.setRoles(roles);
+
+			userRepo.save(user);
+
+			salesDepartmentEmployee.setRole(salesDepartmentEmployee.getRole().toUpperCase());
+
+			salesDepartmentEmployeeRepo.saveAndFlush(salesDepartmentEmployee);
+
+		} catch (Exception e) {
+			log.error("Error occurred in saving Sales employee data: {}", e.getMessage(), e);
+			throw new RuntimeException("Runtime error while saving Sales employee data. Please try again later.", e);
+		}
+	}
+
+	@Override
+	@Transactional(rollbackOn = Exception.class)
+	public void updateSalesEmployeeRegistration(SalesDepartmentEmployee salesDepartmentEmployee) {
+		try {
+			SalesDepartmentEmployee existingEmployee = salesDepartmentEmployeeRepo
+					.findById(salesDepartmentEmployee.getEmpId())
+					.orElseThrow(() -> new InvalidInputException("Invalid empId for update"));
+
+			User user = userRepo.findByUserCode(existingEmployee.getUserCode())
+					.orElseThrow(() -> new InvalidInputException("Invalid user code"));
+
+			if (!user.getEmail().equals(salesDepartmentEmployee.getEmail())) {
+				if (userRepo.findByEmail(salesDepartmentEmployee.getEmail()) != null) {
+					throw new InvalidInputException("This email already exists. Please choose a different email!");
+				}
+			}
+
+			existingEmployee.setFullName(salesDepartmentEmployee.getFullName());
+			existingEmployee.setEmail(salesDepartmentEmployee.getEmail());
+			existingEmployee.setMobileNumber(salesDepartmentEmployee.getMobileNumber());
+			existingEmployee.setAddress(salesDepartmentEmployee.getAddress());
+			existingEmployee.setDesignation(salesDepartmentEmployee.getDesignation());
+			existingEmployee.setRole(salesDepartmentEmployee.getRole().toUpperCase());
+
+			user.setName(salesDepartmentEmployee.getFullName());
+			user.setEmail(salesDepartmentEmployee.getEmail());
+			user.setContact(salesDepartmentEmployee.getMobileNumber());
+			user.setUpdatedAt(LocalDateTime.now());
+			user.setRoles(List.of(salesDepartmentEmployee.getRole().toUpperCase()));
+
+			userRepo.save(user);
+			salesDepartmentEmployeeRepo.saveAndFlush(existingEmployee);
+
+		} catch (InvalidInputException ex) {
+			throw ex;
+		} catch (Exception e) {
+			log.error("Error while updating Sales employee data", e);
+			throw new RuntimeException(
+					"Unexpected error occurred while updating Sales employee data. Please try again later.", e);
+		}
+	}
+
+	@Override
+	@Transactional(rollbackOn = Exception.class)
+	public String deletedSalesEmployeeByEmployeApi(Long employeeId) {
+		SalesDepartmentEmployee employee = salesDepartmentEmployeeRepo.findById(employeeId)
+				.orElseThrow(() -> new InvalidInputException("employee not found with this empId"));
+		userRepo.deleteByUserCode(employee.getUserCode());
+		salesDepartmentEmployeeRepo.delete(employee);
+		return AppConstants.SUCCESS;
 	}
 }

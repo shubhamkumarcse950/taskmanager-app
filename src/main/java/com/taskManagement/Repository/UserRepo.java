@@ -1,5 +1,6 @@
 package com.taskManagement.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,5 +16,7 @@ public interface UserRepo extends JpaRepository<User, Long> {
 	Optional<User> findByEmailOrUserId(String email, Long userId);
 
 	void deleteByUserCode(String userCode);
+
+	List<User> findByName(String name);
 
 }

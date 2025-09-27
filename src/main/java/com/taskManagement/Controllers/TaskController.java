@@ -1,6 +1,8 @@
 package com.taskManagement.Controllers;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,4 +91,61 @@ public class TaskController {
 		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, list);
 	}
 
+	@GetMapping("/getTasksByDeveloperAndDateRange")
+	public ResponseEntity<Object> getTasksByDeveloperAndDateRange(@RequestParam Long developerId,
+			@RequestParam String startDate, @RequestParam String endDate) {
+		try {
+			LocalDate start = LocalDate.parse(startDate);
+			LocalDate end = LocalDate.parse(endDate);
+			List<TaskDto> list = service.getTasksByDeveloperAndDateRange(developerId, start, end);
+			if (list.isEmpty()) {
+				return responseWithObject.generateResponse(AppConstants.NO_DATA_FOUND, HttpStatus.NO_CONTENT, list);
+			}
+			return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, list);
+		} catch (Exception e) {
+			return responseWithObject.generateResponse(AppConstants.ERROR, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	@GetMapping("/getTaskStatsByDeveloper")
+	public ResponseEntity<Object> getTaskStatsByDeveloper(@RequestParam Long developerId,
+			@RequestParam String startDate, @RequestParam String endDate) {
+		try {
+			LocalDate start = LocalDate.parse(startDate);
+			LocalDate end = LocalDate.parse(endDate);
+			return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK,
+					service.getTaskCompletionStats(developerId, start, end));
+		} catch (Exception e) {
+			return responseWithObject.generateResponse(AppConstants.ERROR, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	@GetMapping("/getTaskPerformanceByUserCode")
+	public ResponseEntity<Object> getTaskPerformanceByUserCode(@RequestParam String userCode) {
+		try {
+			return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK,
+					service.getTaskPerformanceByUserCode(userCode));
+		} catch (Exception e) {
+			return responseWithObject.generateResponse(AppConstants.ERROR, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	@GetMapping("/getTaskSubmit-status-percntage")
+	public ResponseEntity<Object> getTaskSubmitPercntage(@RequestParam Long developerId) {
+		Map<String, Long> map = this.service.getTaskSubmitType(developerId);
+		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, map);
+	}
+
+	@GetMapping("/getTaskDateWise")
+	public ResponseEntity<Object> getTaskDateWise(@RequestParam String userCode, @RequestParam LocalDate startDate,
+			@RequestParam LocalDate endDate) {
+		List<TaskDto> list = service.getAllTaskByDateWise(userCode, startDate, endDate);
+		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, list);
+	}
+
+	@PostMapping("/sent-notification")
+	public ResponseEntity<Object> sentNotification(@RequestParam Long developerId) {
+		return responseWithObject.generateResponse(AppConstants.ACCEPT, HttpStatus.OK,
+				service.sentNotification(developerId));
+	}
 }

@@ -16,10 +16,14 @@ public interface SalesEmployeeTaskService {
 
 	SalesEmployeeTaskOutputDto getSalesEmployeeTaskByEmpId(Long empId);
 
-	String addDailyTaskProgress(Long seTaskId, List<String> dailyProgress);
-
 	List<SalesEmployeeTaskOutputDto> getAllTaskOutput(String userCode);
 
 	String updateStatus(Long taskId, String status);
+
+	String addDailyTaskProgress(Long seTaskId, String dailyProgress);
+
+	boolean deleteByTaskId(Long taskId);
+
+	String updateTaskStatus(Long taskId, String status);
 
 }

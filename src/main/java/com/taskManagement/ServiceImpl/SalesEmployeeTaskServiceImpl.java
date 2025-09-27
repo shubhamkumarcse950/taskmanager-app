@@ -1,5 +1,6 @@
 package com.taskManagement.ServiceImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.HibernateException;
@@ -18,6 +19,7 @@ import com.taskManagement.exceptions.InvalidInputException;
 import com.taskManagement.outputdto.SalesEmployeeTaskOutputDto;
 import com.taskManagement.responsemodel.AppConstants;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -60,8 +62,7 @@ public class SalesEmployeeTaskServiceImpl implements SalesEmployeeTaskService {
 	public List<SalesEmployeeTaskOutputDto> getAllEmployeeTaskOutput() {
 		List<SalesEmployeeTask> task = employeeTaskRepo.findAll();
 		return task.stream().filter(t -> t.getSeTaskId() != null).map(e -> {
-			SalesEmployeeTaskOutputDto dto = mapper.toSalesEmployeeTaskDtoOutput(e);
-			return dto;
+			return mapper.toSalesEmployeeTaskDtoOutput(e);
 		}).toList();
 	}
 
@@ -73,18 +74,22 @@ public class SalesEmployeeTaskServiceImpl implements SalesEmployeeTaskService {
 	}
 
 	@Override
-	public String addDailyTaskProgress(Long seTaskId, List<String> dailyProgress) {
+	public String addDailyTaskProgress(Long seTaskId, String dailyProgress) {
 		try {
-			if (dailyProgress.isEmpty()) {
-				throw new InvalidInputException("daily task progerss List is empty,plese provide a valid task list");
+			if (dailyProgress == null || dailyProgress.trim().isEmpty()) {
+				throw new InvalidInputException("Daily task progress is empty, please provide a valid task report");
 			}
 			SalesEmployeeTask task = this.employeeTaskRepo.findById(seTaskId)
-					.orElseThrow(() -> new DataNotFoundException("task not foud with this task Id"));
-			task.setDailyTask(dailyProgress);
+					.orElseThrow(() -> new DataNotFoundException("Task not found with this task Id"));
+
+			if (task.getDailyTask() == null) {
+				task.setDailyTask(new ArrayList<>());
+			}
+			task.getDailyTask().add(dailyProgress);
 			employeeTaskRepo.saveAndFlush(task);
 			return AppConstants.SUCCESS;
 		} catch (InvalidInputException | HibernateException e) {
-			log.error("Erorr|Ouccrred in saving task List,{}", e.getMessage());
+			log.error("Error occurred in saving task list: {}", e.getMessage());
 			return AppConstants.ERROR;
 		}
 	}
@@ -102,6 +107,24 @@ public class SalesEmployeeTaskServiceImpl implements SalesEmployeeTaskService {
 	public String updateStatus(Long taskId, String status) {
 		SalesEmployeeTask task = this.employeeTaskRepo.findById(taskId)
 				.orElseThrow(() -> new InvalidInputException("task not found with this task id"));
+		task.setStatus(status);
+		employeeTaskRepo.save(task);
+		return AppConstants.SUCCESS;
+	}
+
+	@Override
+	@Transactional(rollbackOn = Exception.class)
+	public boolean deleteByTaskId(Long taskId) {
+		SalesEmployeeTask task = this.employeeTaskRepo.findById(taskId)
+				.orElseThrow(() -> new DataNotFoundException("task data not found with this task Id"));
+		employeeTaskRepo.delete(task);
+		return true;
+	}
+
+	@Override
+	public String updateTaskStatus(Long taskId, String status) {
+		SalesEmployeeTask task = this.employeeTaskRepo.findById(taskId)
+				.orElseThrow(() -> new DataNotFoundException("task data not found with this task Id"));
 		task.setStatus(status);
 		employeeTaskRepo.save(task);
 		return AppConstants.SUCCESS;

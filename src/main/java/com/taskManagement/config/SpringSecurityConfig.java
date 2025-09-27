@@ -25,7 +25,8 @@ import com.taskManagement.jwtFilter.JwtFilter;
 public class SpringSecurityConfig {
 
 	private static final String[] AUTH_WHITELIST = { "/**", "/user/**", "swagger-ui.html", "/swagger-ui/**",
-			"/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/api-docs/**", "gourav/**" };
+			"/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/api-docs/**", "gourav/**", "/website-lead",
+			"/ws/**" };
 
 	private JwtFilter filter;
 	private JwtAuthnticationEntryPoint entryPoint;
@@ -120,14 +121,9 @@ public class SpringSecurityConfig {
 
 	@Bean
 	SecurityFilterChain customSecurityFilterChain(HttpSecurity http) throws Exception {
-
 		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
-				.authorizeHttpRequests(auth ->
-				/*
-				 * .requestMatchers("/auth/**") .permitAll().requestMatchers("/**",
-				 * "/api/getdata").hasRole("USER")
-				 */
-				auth.requestMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(
+						auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated())
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(entryPoint))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
@@ -146,4 +142,17 @@ public class SpringSecurityConfig {
 		return source;
 	}
 
+//	@Bean
+//	CorsConfigurationSource corsConfigurationSource() {
+//		CorsConfiguration configuration = new CorsConfiguration();
+//		configuration.setAllowedOriginPatterns(List.of("http://localhost:5173")); // Specific origin for development
+//		// Alternatively, use a pattern like "http://localhost:[0-9]+" for multiple
+//		// ports
+//		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+//		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+//		configuration.setAllowCredentials(true); // Safe with specific origin
+//		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//		source.registerCorsConfiguration("/**", configuration);
+//		return source;
+//	}
 }

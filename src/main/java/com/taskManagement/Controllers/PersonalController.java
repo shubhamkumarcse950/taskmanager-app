@@ -3,6 +3,7 @@ package com.taskManagement.Controllers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,9 +13,12 @@ import com.taskManagement.Service.UserServices;
 import com.taskManagement.responsemodel.AppConstants;
 import com.taskManagement.responsemodel.ResponseWithObject;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/gourav")
+@Tag(name = "testing-controller")
 public class PersonalController {
 
 	private final UserServices userServices;
@@ -34,6 +38,12 @@ public class PersonalController {
 			return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, response);
 		}
 		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK, response);
+	}
+
+	@GetMapping("/list")
+	public ResponseEntity<Object> ethodName(@RequestParam("authUser") String authUser) {
+		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK,
+				userServices.getAllUsers(authUser));
 	}
 
 }

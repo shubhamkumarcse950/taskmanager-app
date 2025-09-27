@@ -6,6 +6,7 @@ import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -65,7 +66,7 @@ public class SalesEmployeeTaskController {
 
 	@PostMapping("/add-task-progress")
 	public ResponseEntity<Object> addDailyTaskProgress(@RequestParam Long taskId,
-			@RequestParam List<String> dailyTaskReport) {
+			@RequestParam String dailyTaskReport) {
 		String respose = this.service.addDailyTaskProgress(taskId, dailyTaskReport);
 		if (respose.equals(AppConstants.SUCCESS)) {
 			return responseWithObject.generateResponse("Task added succesfully!", HttpStatus.OK, respose);
@@ -85,6 +86,19 @@ public class SalesEmployeeTaskController {
 	@PutMapping("/task-id")
 	public ResponseEntity<Object> updateTaskStatsu(@RequestParam Long taskId, @RequestParam String status) {
 		return responseWithObject.generateResponse(AppConstants.SUCCESS, HttpStatus.OK,
+				service.updateStatus(taskId, status));
+
+	}
+
+	@DeleteMapping("/delete-task")
+	public ResponseEntity<Object> deleteById(@RequestParam Long taskId) {
+		return responseWithObject.generateResponse(AppConstants.DELETED_SUCCESFULLY, HttpStatus.OK,
+				service.deleteByTaskId(taskId));
+	}
+
+	@PutMapping("/update-status")
+	public ResponseEntity<Object> putMethodName(@RequestParam Long taskId, @RequestParam String status) {
+		return responseWithObject.generateResponse(AppConstants.ACCEPT, HttpStatus.OK,
 				service.updateStatus(taskId, status));
 
 	}

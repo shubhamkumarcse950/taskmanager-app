@@ -23,5 +23,6 @@ public class ProjectDto {
 	private LocalDate plannedStartDate;
 	private LocalDate plannedEndDate;
 	private List<Long> developerId;
+	private String status;
 //	private List<DeveloperDto> developerDtos;
 }

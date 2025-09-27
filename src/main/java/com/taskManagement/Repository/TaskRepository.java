@@ -1,5 +1,6 @@
 package com.taskManagement.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,5 +14,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 	List<Task> findByDeveloperId(Long developerId);
 
 	List<Task> findByUserCode(String userCode);
+
+	List<Task> findByDeveloperIdAndStartDateBetween(Long developerId, LocalDate startDate, LocalDate endDate);
 
 }

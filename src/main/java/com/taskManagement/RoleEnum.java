@@ -2,5 +2,5 @@ package com.taskManagement;
 
 public enum RoleEnum {
 
-	ADMIN, HR, MANAGER, TL, EMPLOYEE
+	ADMIN, SALES, CLIENT, DEVELOPER, HR, MANAGER, TL
 }

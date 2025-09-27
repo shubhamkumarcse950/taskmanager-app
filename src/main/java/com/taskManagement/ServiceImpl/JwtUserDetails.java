@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
+@Qualifier("JwtUserDetails")
 public class JwtUserDetails implements UserDetailsService {
 	private final UserRepo userRepo;
 

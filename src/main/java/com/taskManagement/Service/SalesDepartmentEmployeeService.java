@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.taskManagement.Dtos.SalesDepartmentEmployeeDto;
+import com.taskManagement.Entitys.SalesDepartmentEmployee;
 
 @Service
 public interface SalesDepartmentEmployeeService {
@@ -18,5 +19,11 @@ public interface SalesDepartmentEmployeeService {
 	SalesDepartmentEmployeeDto updatEmployeeDto(SalesDepartmentEmployeeDto dto);
 
 	SalesDepartmentEmployeeDto getEmployeeByUserCode(String userCode);
+
+	void addSalesEmployee(SalesDepartmentEmployee salesDepartmentEmployee, String password);
+
+	void updateSalesEmployeeRegistration(SalesDepartmentEmployee salesDepartmentEmployee);
+
+	String deletedSalesEmployeeByEmployeApi(Long employeeId);
 
 }
